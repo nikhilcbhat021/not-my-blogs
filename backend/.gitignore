@@ -19,7 +19,7 @@ node_modules/
 .env
 .env.production
 .dev.vars
-src/config.json
+./src/config.json
 
 # logs
 logs/
