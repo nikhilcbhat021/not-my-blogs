@@ -33,15 +33,15 @@ export function createPrismaClient(databaseUrl: string) {
     return new PrismaClient({
         datasourceUrl: databaseUrl,
     })
-        .$extends({
-            query: {
-                $allOperations({ operation, args, query }) {
-                    console.log(`Query: ${operation} - ${args}`);
-                    return query(args)
-                }
+    .$extends({
+        query: {
+            $allOperations({ operation, args, query }) {
+                console.log(`Query: ${operation} - ${args}`);
+                return query(args)
             }
-        })
-        .$extends(withAccelerate())
+        }
+    })
+    .$extends(withAccelerate())
 }
 
 /**
@@ -59,7 +59,7 @@ const app = new Hono<ENV>();
 
 // logger middleware
 app.use('*', async (c, next) => {
-    console.log(`Hello from - Middleware`);
+    console.log(`Hello from - Index.js Root Middleware`);
 
     const prisma = createPrismaClient(c.env.DATABASE_URL);
 

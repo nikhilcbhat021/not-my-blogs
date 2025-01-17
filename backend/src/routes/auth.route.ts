@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { sign, verify } from "hono/jwt";
 
 import { generateSha256Hash } from '../index';
-import { ENV } from "../types";
+import { ENV, User } from "../types";
 // import * as configs from '../config.json';
 
 const app = new Hono<ENV>();
@@ -47,14 +47,8 @@ app.post(`/signin`, async (c) => {
     const db = c.get('db');
 
     try {
-        const body: {
-            email:string,
-            password:string,
-            name?:string
-        } = await c.req.json();
-
+        const body: User = await c.req.json();
         const hashedIncomingPass = await generateSha256Hash(body.password);
-
         const userDetails = await db.user.findUnique({
             where: {
                 email: body.email,
@@ -77,7 +71,7 @@ app.post(`/signin`, async (c) => {
             return c.json({error: "user not found"});
         }
 
-        const token = await sign({id:userDetails.email}, c.env.JWT_SECRET)
+        const token = await sign({email:userDetails.email, id: userDetails.id}, c.env.JWT_SECRET)
         console.log(token);
 
         return c.json({success:true, token: token});

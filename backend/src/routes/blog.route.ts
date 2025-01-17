@@ -1,30 +1,143 @@
-import { Hono } from "hono";
+import { Context, Hono } from "hono";
 
-import { Env } from "hono";
 import { generateSha256Hash, createPrismaClient } from '../index';
 import { PrismaClient } from "@prisma/client/edge";
-import { ENV } from "../types";
+import { ENV, JWTPayload } from "../types";
+import { Blog } from "@prisma/client/edge";
+import { verify, jwt } from "hono/jwt";
+import type { SignatureKey } from "hono/utils/jwt/jws";
+import { HTTPException } from "hono/http-exception";
+import { RegExpRouter } from "hono/router/reg-exp-router";
 
-const app = new Hono<ENV>();
+
+const blogRouter = new Hono<ENV>({
+    router: new RegExpRouter()
+});
 
 
-app.use('/*', async(c, next) => {
-    console.log(`In blogrouter middleware. Path = ${c.req.path}`);
-    const retjson = await c.json({})
-    await next();
-})
+// Create error middleware
+blogRouter.onError((err, c) => {
+    // Handle JWT verification errors
 
-app.post(`/`, async (c) => {
-    return c.text(`Hello from - ${c.req.path}`);
-})
-app.put(`/`, async (c) => {
+    console.log("--------------------Error Route Start--------------------");
+    // console.log(err?.message)
+    // console.log("--------------------Error Cause--------------------")
+    // console.log(err?.cause)
+    // console.log("--------------------Error Name--------------------")
+    // console.log(err?.name)
+    // console.log("--------------------Error Stack--------------------")
+    // console.log(err?.stack)
     
-    return c.text(`Hello from - ${c.req.path}`);
+    if (err instanceof HTTPException) {
+        if (err.message === 'Unauthorized') {
+            return c.json({
+                error: 'Authentication failed',
+                message: 'Invalid or missing token'
+            }, 401)
+        }
+        return c.json({
+            error: err.message,
+            status: err.status
+        }, err.status)
+    }
+    
+    // Handle any other errors
+    console.error('Server error:', err);
+    console.log("--------------------Error Route End--------------------");
+
+    return c.json({
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred'
+    }, 500)
 })
-app.get(`/:id`, async (c) => {
-    // const prisma = c.get('prismaClient')
-    console.log(c.req.param('id'));
+
+blogRouter.use('*', (c, next) => jwt({
+    secret: c.env.JWT_SECRET
+})(c, next))
+
+blogRouter.use('*', async (c, next) => {
+    const payload: JWTPayload = c.get('jwtPayload');
+    c.set('data', payload);
+    console.log(payload);
+    console.log(c.req.url);
+    console.log(c.req.path);
+    await next()
+})
+
+blogRouter.post('/', async (c) => {
+    console.log("post endpoint ----- ");
+    const body:Blog = await c.req.json();
+    const db = c.var.db;
+    const userId = c.get("jwtPayload").id;
+
+    console.log(body, userId);
+
+    try {
+        const blog = await db.blog.create({
+            data: {
+                userId: userId,
+                title: body.title,
+                content: body.content,
+                comments: body?.comments,
+            }
+        });
+
+        if (!blog) {
+            return c.json({
+                error: 'Something went wrong...Databse error'
+            }, 500)
+        }
+        console.log(blog);
+        return c.json(blog, 200);
+    } catch (error) {
+        console.error(error);
+        return c.json({
+            error: "internal server error"
+        }, 500);
+    }
+    // return c.text("");
+})
+
+blogRouter.put(`/?`, async (c) => {
+
     return c.text(`Hello from - ${c.req.path}`);
 })
 
-export default app;
+
+blogRouter.get(`/:id`, async (c) => {
+    // const prisma = c.get('prismaClient')
+    const paramId = c.req.param('id');
+    console.log(c.get("data"));
+    const payload = c.get('jwtPayload')
+    console.log(payload);
+    const db = c.var.db;
+    try {
+        const blog = await db.blog.findUnique({
+            where: {
+                id: paramId
+            },
+            cacheStrategy: {
+                swr: 30,
+                ttl: 60
+            }
+        })
+
+        console.log(blog);
+
+        if (!blog) {
+            c.status(404);
+            return c.json({
+                error: `Blog with id - ${paramId} not found.`
+            })
+        }
+
+        return c.json(blog, 200);
+    } catch (error) {
+        console.error(error);
+        c.status(500);
+        return c.text("Internal Server Error");
+    }
+    return c.text(`Hello from - ${c.req.path}`);
+})
+
+export default blogRouter;
