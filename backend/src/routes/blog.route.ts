@@ -98,9 +98,40 @@ blogRouter.post('/', async (c) => {
     // return c.text("");
 })
 
-blogRouter.put(`/?`, async (c) => {
+blogRouter.put(`/`, async (c) => {
+    const body:Blog = await c.req.json();
+    const db = c.var.db;
+    const userId = c.get("jwtPayload").id;
 
-    return c.text(`Hello from - ${c.req.path}`);
+    console.log(body, userId);
+
+    try {
+        const blog = await db.blog.update({
+            where: {
+                id: body.id
+            },
+            data: {
+                // userId: userId,  // since a blog posted by one user will not be transfereed to another, updating this is invalid.
+                title: body.title,
+                content: body.content,
+                comments: body?.comments,
+                deleted: body?.deleted || false,
+            }
+        });
+
+        if (!blog) {
+            return c.json({
+                error: 'Something went wrong...Databse error'
+            }, 500)
+        }
+        console.log(blog);
+        return c.json(blog, 200);
+    } catch (error) {
+        console.error(error);
+        return c.json({
+            error: "internal server error"
+        }, 500);
+    }
 })
 
 
