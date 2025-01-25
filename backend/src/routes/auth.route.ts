@@ -1,14 +1,36 @@
-import { Hono } from "hono";
+import { Hono, Next, Context } from "hono";
 import { sign, verify } from "hono/jwt";
 
 import { generateSha256Hash } from '../index';
 import { ENV, User } from "../types";
+import { signinInput, signupInput } from '@nikhilcbhat021/medium-common'
+import { ZodObject } from "zod";
 // import * as configs from '../config.json';
 
 const app = new Hono<ENV>();
 
 
-app.post(`/signup`, async (c) => {
+const zodValidator = async (zodObj:ZodObject<{}>, c:Context<ENV>, next:Next) => {
+    const body = await c.req.json();
+    const zodValidation = zodObj.safeParse(body);
+
+    console.log("Inside zodvalidator")
+    if (!zodValidation.success) {
+        const errorStr = zodValidation.error.issues.reduce((prevStr, currErr, idx) => {
+            return prevStr+
+                `Input - '${currErr.path}' --- expected: ${currErr?.expected} , received: ${currErr?.received}. ${currErr.message}\n`
+        }, "")
+        console.error(errorStr);
+        return c.json({
+            error: `Input validations failed. Error :: ${errorStr}`,
+        }, 401)
+    }
+
+    await next();
+}
+
+
+app.post(`/signup`, async (c, next) => await zodValidator(signupInput, c, next), async (c) => {
 
     const db = c.get('db');
     console.log(c.env.JWT_SECRET);
@@ -35,15 +57,28 @@ app.post(`/signup`, async (c) => {
              * }
             */
         })
+        if (!ret) {
+            console.log('ret is false');
+            return c.json({error: 'DB Error'}, 500);
+        }
         console.log(ret);
         return c.text(`Hello from - ${c.req.path}. We need to redirect to login route if successfully Signed-Up. Further we can do email-verification etc`);
-    } catch (error) {
-        console.error(error);
-        return c.status(403);
+    } catch (err: any) {
+        console.error(Object.keys(err));
+        console.error('------')
+        console.error(err?.name)
+        console.error('------')
+
+        if (err?.code === 'P2002') {
+            return c.text("User already exists", 403);
+        }
+
+        return c.json({error: err?.message}, 500);
+
     }
 })
 
-app.post(`/signin`, async (c) => {
+app.post(`/signin`, async (c, next) => await zodValidator(signinInput, c, next), async (c) => {
     const db = c.get('db');
 
     try {
@@ -67,8 +102,7 @@ app.post(`/signin`, async (c) => {
         console.log(userDetails)
 
         if (!userDetails) {
-            c.status(403);
-            return c.json({error: "user not found"});
+            return c.json({error: "Username or Password is incorrect"}, 403);
         }
 
         const token = await sign({email:userDetails.email, id: userDetails.id}, c.env.JWT_SECRET)

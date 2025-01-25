@@ -1,19 +1,15 @@
-import { Context, Hono } from "hono";
+import { Hono, Next, Context } from "hono";
 
-import { generateSha256Hash, createPrismaClient } from '../index';
-import { PrismaClient } from "@prisma/client/edge";
 import { ENV, JWTPayload } from "../types";
 import { Blog } from "@prisma/client/edge";
-import { verify, jwt } from "hono/jwt";
-import type { SignatureKey } from "hono/utils/jwt/jws";
+import { jwt } from "hono/jwt";
 import { HTTPException } from "hono/http-exception";
-import { RegExpRouter } from "hono/router/reg-exp-router";
+import z, { ZodObject } from 'zod';
+import { postBlogInput, blogUpdateInput, UpdateBlogType, PostBlogType } from '@nikhilcbhat021/medium-common'
+import { createMiddleware } from "hono/factory";
+// import { signupInput, postBlogInput } from '../../../common/src/index';
 
-
-const blogRouter = new Hono<ENV>({
-    router: new RegExpRouter()
-});
-
+const blogRouter = new Hono<ENV>();
 
 // Create error middleware
 blogRouter.onError((err, c) => {
@@ -58,15 +54,36 @@ blogRouter.use('*', (c, next) => jwt({
 blogRouter.use('*', async (c, next) => {
     const payload: JWTPayload = c.get('jwtPayload');
     c.set('data', payload);
-    console.log(payload);
-    console.log(c.req.url);
-    console.log(c.req.path);
+    c.set('zodObject', );
+    // console.log(payload);
+    // console.log(c.req.url);
+    // console.log(c.req.path);
     await next()
 })
 
-blogRouter.post('/', async (c) => {
+const zodValidator = async (zodObj:ZodObject<{}>, c:Context<ENV>, next:Next) => {
+    const body = await c.req.json();
+    const zodValidation = zodObj.safeParse(body);
+
+    console.log("Inside zodvalidator")
+    if (!zodValidation.success) {
+        const errorStr = zodValidation.error.issues.reduce((prevStr, currErr, idx) => {
+            return prevStr+
+                `Input - '${currErr.path}' --- expected: ${currErr?.expected} , received: ${currErr?.received}. ${currErr.message}\n`
+        }, "")
+        console.error(errorStr);
+        return c.json({
+            error: `Input validations failed. Error :: ${errorStr}`,
+        }, 401)
+    }
+
+    await next();
+}
+
+blogRouter.post('/', async (c, next) => await zodValidator(postBlogInput, c, next), async (c) => {
     console.log("post endpoint ----- ");
-    const body:Blog = await c.req.json();
+    const body = await c.req.json();
+
     const db = c.var.db;
     const userId = c.get("jwtPayload").id;
 
@@ -78,7 +95,7 @@ blogRouter.post('/', async (c) => {
                 userId: userId,
                 title: body.title,
                 content: body.content,
-                comments: body?.comments,
+                // comments: body?.comments,    // Comments can be given to a blog ONLY after its posted, not along when its posted.
             }
         });
 
@@ -95,15 +112,20 @@ blogRouter.post('/', async (c) => {
             error: "internal server error"
         }, 500);
     }
-    // return c.text("");
 })
 
-blogRouter.put(`/`, async (c) => {
-    const body:Blog = await c.req.json();
+blogRouter.put(`/`, (c, next) => zodValidator(blogUpdateInput, c, next), async (c) => {
+    const body = await c.req.json();
     const db = c.var.db;
     const userId = c.get("jwtPayload").id;
 
     console.log(body, userId);
+
+    if (!body.title && !body.content && !body.deleted) {
+        return c.json({
+            message: 'Nothing to update, everything is same.'
+        }, 409)
+    }
 
     try {
         const blog = await db.blog.update({
@@ -131,6 +153,41 @@ blogRouter.put(`/`, async (c) => {
         return c.json({
             error: "internal server error"
         }, 500);
+    }
+})
+
+
+blogRouter.get('/bulk', async(c) => {
+
+    const payload = c.get('jwtPayload')
+    console.log(payload);
+    const db = c.var.db;
+    try {
+        const blogs = await db.blog.findMany({
+            where: {
+                deleted: false,
+                // userId: payload.id
+            },
+            cacheStrategy: {
+                swr: 30,
+                ttl: 60
+            }
+        })
+
+        console.log(blogs);
+
+        if (!blogs.length) {
+            c.status(404);
+            return c.json({
+                error: `No Blogs found from userId - ${payload.id}`
+            })
+        }
+
+        return c.json({count: blogs.length , blogs: blogs}, 200);
+    } catch (error) {
+        console.error(error);
+        c.status(500);
+        return c.text("Internal Server Error");
     }
 })
 
@@ -168,7 +225,6 @@ blogRouter.get(`/:id`, async (c) => {
         c.status(500);
         return c.text("Internal Server Error");
     }
-    return c.text(`Hello from - ${c.req.path}`);
 })
 
 export default blogRouter;

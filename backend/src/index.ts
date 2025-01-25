@@ -1,6 +1,5 @@
 //lib imports
 import { Hono } from 'hono'
-import { jwt, sign, verify } from 'hono/jwt';
 
 // local imports
 import * as configs from './config.json';

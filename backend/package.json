@@ -7,6 +7,7 @@
     "generate": "prisma generate --no-engine"
   },
   "dependencies": {
+    "@nikhilcbhat021/medium-common": "^1.0.7",
     "@prisma/client": "^6.2.1",
     "@prisma/extension-accelerate": "^1.2.1",
     "hono": "^4.6.16",
@@ -14,6 +15,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
+    "crypto-js": "^4.2.0",
     "wrangler": "^3.101.0"
   }
 }

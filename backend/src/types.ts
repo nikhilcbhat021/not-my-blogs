@@ -1,6 +1,7 @@
 import { Blog } from '@prisma/client';
 import { createPrismaClient } from './index';
-import { JwtVariables } from 'hono/jwt'
+import { JwtVariables } from 'hono/jwt';
+import { ZodObject } from 'zod';
 
 // Define the JWT payload type
 export interface JWTPayload {
@@ -31,5 +32,6 @@ export interface ENV {
         db: ReturnType<typeof createPrismaClient>,
         log: string,
         data: JWTPayload,
+        zodObject: ZodObject<{}>
     }
 }
