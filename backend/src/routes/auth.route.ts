@@ -70,11 +70,10 @@ app.post(`/signup`, async (c, next) => await zodValidator(signupInput, c, next),
         console.error('------')
 
         if (err?.code === 'P2002') {
-            return c.text("User already exists", 403);
+            return c.json({error: "User already exists"}, 403);
         }
 
         return c.json({error: err?.message}, 500);
-
     }
 })
 
@@ -108,10 +107,10 @@ app.post(`/signin`, async (c, next) => await zodValidator(signinInput, c, next),
         const token = await sign({email:userDetails.email, id: userDetails.id}, c.env.JWT_SECRET)
         console.log(token);
 
-        return c.json({success:true, token: token});
-    } catch (error) {
+        return c.json({success:true, token: token, name: userDetails.name});
+    } catch (error:any) {
         console.error(error);
-        return c.status(403);
+        return c.json({error: error?.message}, 500);
     }
 })
 

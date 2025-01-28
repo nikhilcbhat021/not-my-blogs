@@ -8,6 +8,8 @@ import blogRouter from './routes/blog.route';
 import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { ENV } from './types';
+
+import { cors } from 'hono/cors';
 /**
  * Constants and Helper Functions
  * 
@@ -57,14 +59,15 @@ const app = new Hono<ENV>();
  */
 
 // logger middleware
+app.use(cors());
 app.use('*', async (c, next) => {
     console.log(`Hello from - Index.js Root Middleware`);
-
     const prisma = createPrismaClient(c.env.DATABASE_URL);
-
+    
     c.set('db', prisma);
     c.set('log', 'Hi');
     await next();
+    console.log("path - " + c.req.url);
 })
 
 
@@ -74,7 +77,7 @@ app.get('/', (c) => {
 })
 
 app.route(`${configs.apiv1}/auth`, authRouter);
-app.route(`${configs.apiv1}/blog`, blogRouter);
+app.route(`${configs.apiv1}/blogs`, blogRouter);
 
 
 export default app;

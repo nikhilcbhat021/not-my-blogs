@@ -54,7 +54,8 @@ blogRouter.use('*', (c, next) => jwt({
 blogRouter.use('*', async (c, next) => {
     const payload: JWTPayload = c.get('jwtPayload');
     c.set('data', payload);
-    c.set('zodObject', );
+    console.error("Middleware blogs");
+    // c.set('zodObject', );
     // console.log(payload);
     // console.log(c.req.url);
     // console.log(c.req.path);
@@ -164,9 +165,16 @@ blogRouter.get('/bulk', async(c) => {
     const db = c.var.db;
     try {
         const blogs = await db.blog.findMany({
-            where: {
+            where: {    
                 deleted: false,
                 // userId: payload.id
+            },
+            include: {
+                author: {
+                    select: {
+                        name: true,
+                    }
+                }
             },
             cacheStrategy: {
                 swr: 30,
@@ -203,6 +211,13 @@ blogRouter.get(`/:id`, async (c) => {
         const blog = await db.blog.findUnique({
             where: {
                 id: paramId
+            },
+            include: {
+                author: {
+                    select: {
+                        name: true
+                    }
+                }
             },
             cacheStrategy: {
                 swr: 30,
