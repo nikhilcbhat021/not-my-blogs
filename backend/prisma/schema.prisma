@@ -25,7 +25,7 @@ model Blog {
     id       String  @id @default(uuid())
     title    String
     content  String
-    comments String?
+    comments String[]
     deleted  Boolean @default(false)
     // reactions  Reaction[]?
     userId   String
