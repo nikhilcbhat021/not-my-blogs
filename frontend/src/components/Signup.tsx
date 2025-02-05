@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from 'react'
+import { FormEvent, useState } from 'react'
 import reactImg from '/react.svg';
 import { NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -8,37 +8,12 @@ import { LabelledInput, Loading } from './Utils';
 import { SignUpType, signupInput } from '@nikhilcbhat021/medium-common';
 import { AuthInputType } from './Constants';
 
-// const useError = () => {
-//     const [error, setError] = useState<Array<string>>([]);
-//     useEffect(() => {
-//         setError(e => ([...e, error]));
-//     }, [error])
-//     return [error, setError];
-// }
 
 const Signup = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [cnfPassword, setCnfPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Array<string>>([]);
     const widthClassnames = 'sm:mx-auto sm:w-full sm:max-w-lg';
     const navigate = useNavigate();
-    const [finalObj, setFinalObj] = useState<SignUpType>({
-        email: "",
-        password: "",
-        name: "",
-        // cnfPassword: ""
-    })
-
-    useEffect(() => {
-        console.log('rendering');
-    }, [])
-
-    useEffect(() => {
-        console.log(`Signup re-rendered`);
-        console.log(finalObj)
-    })
 
     const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -99,36 +74,24 @@ const Signup = () => {
                     className='space-y-6 text-xl flex flex-col'
                 >
                     <LabelledInput label='Email address'
-                        onChange={useCallback(e => {
-                            const name = e.target.name;
-                            console.log("set the state here - " + e.target.value);
-                            // setFinalObj(f => ({...f, [name]: e.target.value}));
-                        }, [])}
                         disabled={loading}
                         name={AuthInputType.email}
                         placeholder='jestchest@yippee.com'
                         type='text'
                     />
                     <LabelledInput label='Name'
-                        onChange={useCallback(e => {
-                            const name = e.target.name;
-                            console.log("set the state here - " + e.target.value);
-                            // setFinalObj(f => ({...f, [name]: e.target.value}));
-                        }, [])}
                         disabled={loading}
                         name={AuthInputType.name}
                         placeholder='Jester Chester'
                         type='text'
                     />
                     <LabelledInput label='Password'
-                        onChange={useCallback(e => console.log("set the state here - " + e.target.value), [])}
                         placeholder="I'm a Strong PWD"
                         disabled={loading}
                         name={AuthInputType.password}
                         type='password'
                     />
                     <LabelledInput label='Confirm Password'
-                        onChange={useCallback(e => console.log("set the state here - " + e.target.value), [])}
                         placeholder="I'm a Strong PWD"
                         disabled={loading}
                         name={AuthInputType.cnfPassword}

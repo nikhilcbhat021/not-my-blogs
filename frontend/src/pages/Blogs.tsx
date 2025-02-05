@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
 
@@ -15,8 +15,8 @@ const Blogs = () => {
     const { loading, blogs } = useBlogs<Blog>(id);
 
     useEffect(() => {
-        console.log(loading);
-        console.log(blogs);
+        // console.log(loading);
+        // console.log(blogs);
     })
 
     if (loading) {

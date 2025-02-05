@@ -1,4 +1,4 @@
-import { ChangeEvent, memo, useEffect, useState } from "react";
+import { ChangeEvent, memo, useEffect } from "react";
 
 interface LabelledInput {
     label: string;
@@ -9,9 +9,8 @@ interface LabelledInput {
     disabled?:boolean;
 }
 
-interface ControlledLabelledInput<T> extends LabelledInput {
+interface ControlledLabelledInput extends LabelledInput {
     value: string;
-    setValue?: (React.Dispatch<React.SetStateAction<T>>)
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -32,12 +31,12 @@ const random3digNum = () => {
  * We use FormData to get all the values in onSubmitHandler.
  * If you want to check strength of password as the user types, we have to use a controlled component.
  */
-export const LabelledInput = memo(({label, onChange, name, type="text", placeholder="", disabled=false}: LabelledInput) => {
+export const LabelledInput = memo(({label, name, type="text", placeholder="", disabled=false}: LabelledInput) => {
     const randomid = random3digNum();
     // const [input, setInput] = useState("");
 
     useEffect(() => {
-        console.log('LabelledInput re-rendered');
+        // console.log('LabelledInput re-rendered');
     })
 
     return (
@@ -47,9 +46,9 @@ export const LabelledInput = memo(({label, onChange, name, type="text", placehol
             </label>
             <input 
                 // value={input} 
-                onChange={e => {
+                onChange={() => {
                         // setInput(e.target.value);
-                        onChange(e);
+                        console.log("previously was calling the onchange function passed as arg, now using a diff component for that.");
                     }
                 }
                 disabled={disabled}
@@ -70,12 +69,12 @@ export const LabelledInput = memo(({label, onChange, name, type="text", placehol
     )
 })
 
-export const ControlledLabelledInput = memo(({label, onChange, setValue, value, name, type="text", placeholder="", disabled=false}: ControlledLabelledInput<string>) => {
+export const ControlledLabelledInput = memo(({label, onChange, value, name, type="text", placeholder="", disabled=false}: ControlledLabelledInput) => {
     const randomid = random3digNum();
     // const [input, setInput] = useState("");
 
     useEffect(() => {
-        console.log('LabelledInput re-rendered');
+        // console.log('LabelledInput re-rendered');
     })
 
     return (

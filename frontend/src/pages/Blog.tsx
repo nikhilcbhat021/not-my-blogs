@@ -13,7 +13,9 @@ const Blog = () => {
     const { id } = useParams();
     const { loading, blogs } = useBlogs<Blog>(id);
 
-    useEffect(() => { console.log("blogs re-render") });
+    useEffect(() => { 
+        // console.log("blogs re-render") 
+    });
 
     if (loading) {
         return <div>
@@ -75,9 +77,13 @@ export const CommentSection = memo(({
     const [localComments, setLocalComments] = useState<typeof comments>(comments);
     const navigate = useNavigate();
 
-    useEffect(() => { console.log("comments section rerender") });
+    useEffect(() => { 
+        // console.log("comments section rerender") 
+    });
 
-    useEffect(() => { console.log("localcomments updated") }, [localComments])
+    useEffect(() => { 
+        // console.log("localcomments updated") 
+    }, [localComments])
 
     const handleAddComment = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -97,7 +103,11 @@ export const CommentSection = memo(({
             // navigate(0);
         } catch (err) {
             console.error(err);
-            navigate('/error', { state: { error: err.response.data.error } });
+            if (axios.isAxiosError(err)) {
+                navigate('/error', { state: { error: err.response?.data?.error } });
+            } else {
+                navigate('/error', { state: {error: 'Unexpected Error Occured.'} })
+            }
         }
     }
 

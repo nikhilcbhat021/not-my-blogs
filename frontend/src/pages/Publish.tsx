@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react'
 import AppBar from '../components/AppBar'
 import NewBlog from '../components/NewBlog'
 

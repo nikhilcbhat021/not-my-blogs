@@ -1,4 +1,4 @@
-import React, { Dispatch, EventHandler, FormEvent, RefObject, SetStateAction, useEffect, useRef, useState } from 'react'
+import { Dispatch, FormEvent, RefObject, SetStateAction, useEffect, useRef, useState } from 'react'
 import '../App.css'
 import './Button.css'
 import { FontSize } from './Constants';
@@ -16,14 +16,6 @@ const NewBlog = () => {
 
     const navigate = useNavigate();
 
-
-    useEffect(() => {
-        console.log("Mount");
-
-        return () => {
-            console.log("Unmount");
-        }
-    }, []);
 
     useEffect(() => {
         // console.log("Re-render")
@@ -65,7 +57,11 @@ const NewBlog = () => {
             navigate(`/blogs/${id}`);
         } catch (err) {
             console.error(err);
-            navigate('/error', {state: {error: err.response.data.error}});
+            if (axios.isAxiosError(err) && err.response) {
+                navigate('/error', {state: {error: err.response.data.error}});
+            } else {
+                console.error(err);
+            }
         }
     } 
 

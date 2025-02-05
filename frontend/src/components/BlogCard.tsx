@@ -1,4 +1,3 @@
-import React from 'react'
 import { Avatar, Circle, Pill } from './Utils';
 import { Link } from 'react-router-dom';
 

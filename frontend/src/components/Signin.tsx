@@ -1,5 +1,5 @@
-import { FormEvent, useCallback, useState } from 'react'
-import axios, { AxiosError } from 'axios';
+import { FormEvent, useState } from 'react'
+import axios from 'axios';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { SignInType, signinInput } from '@nikhilcbhat021/medium-common';
 
@@ -52,14 +52,18 @@ const Signin = () => {
             localStorage.setItem('name', signinRes.data.name);
 
             navigate('/blogs');
-        } catch (error: unknown) {
+        } catch (error) {
             console.error(error);
             const errMsg: string[] = [];
-            if (String(error.status).charAt(0) === '4') {
-                errMsg.push(error.response.data?.error)
-                setError(errMsg);
+            if (axios.isAxiosError(error)) {
+                if (String(error.response?.status).charAt(0) === '4') {
+                    errMsg.push(error.response?.data?.error);
+                    setError(errMsg);
+                } else {
+                    console.error("Internal Server Error!!! We are fixing it as we speak.");
+                }
             } else {
-                alert("Internal Server Error!!! We are fixing it as we speak.");
+                console.error("Unexpected error", error);
             }
         } finally {
             setLoading(false);
@@ -79,14 +83,14 @@ const Signin = () => {
                 >
                     <LabelledInput label='Email address'
                         disabled={loading}
-                        onChange={() => true}
+                        // onChange={() => true}
                         name={AuthInputType.email}
                         placeholder='jestchest@yippee.com'
                         type='text'
                     />
                     <LabelledInput label='Password'
                         disabled={loading}
-                        onChange={() => true}
+                        // onChange={() => true}
                         placeholder="I'm a Strong PWD"
                         name={AuthInputType.password}
                         type='password'

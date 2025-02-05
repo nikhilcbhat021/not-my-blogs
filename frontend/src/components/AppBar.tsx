@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import { memo } from 'react'
 import { Avatar } from './Utils'
 import './Button.css'
 import { Link } from 'react-router-dom'

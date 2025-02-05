@@ -1,8 +1,7 @@
-import { useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import './App.css';
-import Home from './pages/Home';
+// import Home from './pages/Home';
 import AuthPage from './pages/AuthPage';
 import Signin from './components/Signin';
 import Signup from './components/Signup';
@@ -17,7 +16,8 @@ function App() {
     return <div className='h-screen bg-white'>
         <BrowserRouter>
             <Routes>
-                <Route index element={<Home />} />  // '/'
+                <Route index element={<Blogs />} />  // '/'
+                {/* <Route index element={<Home />} />  // '/' */}
                 <Route path="about" element={<About />} /> //   '/about'
 
                 <Route element={<AuthPage />}>
