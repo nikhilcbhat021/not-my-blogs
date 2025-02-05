@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useEffect } from 'react'
 import { Avatar } from './Utils'
 import './Button.css'
 import { Link } from 'react-router-dom'
@@ -40,9 +40,17 @@ const AppBar = memo((
                     </Link>
                 </div>
                 <div className='flex gap-4 items-center'>
-                    <Link to={'/blogs/new-story'} reloadDocument={true}>
-                        <button onClick={handleBtnClick} className={`btn`}>New Blog</button>
-                    </Link>
+                    {
+                        localStorage.getItem('authToken') ? (
+                            <Link to={'/blogs/new-story'} reloadDocument={true}>
+                                <button onClick={handleBtnClick} className={`btn`}>New Blog</button>
+                            </Link>
+                        ) : (
+                            <Link to={'/signin'} reloadDocument={true}>
+                                <button onClick={handleBtnClick} className={`btn`}>Sign In</button>
+                            </Link>
+                        )
+                    }
                     <Avatar name={name} size="big" />
                 </div>
             </div>

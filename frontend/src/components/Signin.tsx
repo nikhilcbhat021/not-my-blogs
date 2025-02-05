@@ -75,7 +75,7 @@ const Signin = () => {
         <main className='flex flex-col items-center justify-start min-h-full px-6 py-12 lg:px-8'>
             <div className={`${widthClassnames}`}>
                 <img src={reactImg} alt="react img" className='text-2xl font-bold h-20 mx-auto w-auto' />
-                <h2 className="my-12 text-center text-4xl font-bold tracking-tight text-gray-900 ">Sign in to your account</h2>
+                <h2 className="my-12 text-center text-4xl font-bold tracking-tight text-gray-900 ">Sign in to continue reading</h2>
             </div>
             <div className={` w-full mt-10 ${widthClassnames}`}>
                 <form action="" method='POST' onSubmit={(e) => handleOnSubmit(e)}

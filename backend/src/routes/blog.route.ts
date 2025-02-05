@@ -47,6 +47,48 @@ blogRouter.onError((err, c) => {
     }, 500)
 })
 
+
+blogRouter.get('/bulk', async(c) => {
+
+    // const payload = c.get('jwtPayload')
+    // console.log(payload);
+    const db = c.var.db;
+    try {
+        const blogs = await db.blog.findMany({
+            where: {    
+                deleted: false,
+                // userId: payload.id
+            },
+            include: {
+                author: {
+                    select: {
+                        name: true,
+                    }
+                }
+            },
+            cacheStrategy: {
+                swr: 30,
+                ttl: 60
+            }
+        })
+
+        console.log(blogs);
+
+        if (!blogs.length) {
+            c.status(404);
+            return c.json({
+                error: `No Blogs found`
+            })
+        }
+
+        return c.json({count: blogs.length , blogs: blogs}, 200);
+    } catch (error) {
+        console.error(error);
+        c.status(500);
+        return c.text("Internal Server Error");
+    }
+})
+
 blogRouter.use('*', (c, next) => jwt({
     secret: c.env.JWT_SECRET
 })(c, next))
@@ -154,48 +196,6 @@ blogRouter.put(`/`, (c, next) => zodValidator(blogUpdateInput, c, next), async (
         return c.json({
             error: "internal server error"
         }, 500);
-    }
-})
-
-
-blogRouter.get('/bulk', async(c) => {
-
-    const payload = c.get('jwtPayload')
-    console.log(payload);
-    const db = c.var.db;
-    try {
-        const blogs = await db.blog.findMany({
-            where: {    
-                deleted: false,
-                // userId: payload.id
-            },
-            include: {
-                author: {
-                    select: {
-                        name: true,
-                    }
-                }
-            },
-            cacheStrategy: {
-                swr: 30,
-                ttl: 60
-            }
-        })
-
-        console.log(blogs);
-
-        if (!blogs.length) {
-            c.status(404);
-            return c.json({
-                error: `No Blogs found from userId - ${payload.id}`
-            })
-        }
-
-        return c.json({count: blogs.length , blogs: blogs}, 200);
-    } catch (error) {
-        console.error(error);
-        c.status(500);
-        return c.text("Internal Server Error");
     }
 })
 

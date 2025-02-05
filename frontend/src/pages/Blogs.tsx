@@ -17,7 +17,7 @@ const Blogs = () => {
     useEffect(() => {
         // console.log(loading);
         // console.log(blogs);
-    })
+    }, [])
 
     if (loading) {
         return <div>
