@@ -1,0 +1,13 @@
+.btn {
+    color: white;
+    background-color: rgb(21, 128, 61);
+    border-radius: 100000px;
+    padding: .5rem 1rem;
+    font-size: larger;
+    cursor: pointer;
+}
+
+.btn:disabled {
+    background-color: rgb(102, 205, 170);;
+    cursor: auto;
+}

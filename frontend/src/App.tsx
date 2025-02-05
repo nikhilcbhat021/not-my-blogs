@@ -6,12 +6,13 @@ import Home from './pages/Home';
 import AuthPage from './pages/AuthPage';
 import Signin from './components/Signin';
 import Signup from './components/Signup';
-import Blog from './pages/Blog';
 import About from './pages/About';
+import ErrorPage from './pages/Error';
+import Blogs from './pages/Blogs';
+import Blog from './pages/Blog';
+import Publish from './pages/Publish';
 
 function App() {
-    const [count, setCount] = useState(0);
-
 
     return <div className='h-screen bg-white'>
         <BrowserRouter>
@@ -24,11 +25,13 @@ function App() {
                     <Route path="signup" element={<Signup />} />    '/signup'
                 </Route>
 
-                <Route path="blog">
-                    {/* <Route index element={<Blog />} />  //  '/blog' */}
-                    <Route path=":id" element={<Blog />} />   //  '/blog/:city'
-                    <Route path="bulk" element={<Blog all={true} />} />    //  '/blog/bulk'
+                <Route path="blogs">
+                    <Route index element={<Blogs />} />  //  '/blogs'
+                    <Route path="bulk" element={<Blogs />} />    //  '/blogs/bulk'
+                    <Route path=":id" element={<Blog />} />   //  '/blogs/:city'
+                    <Route path="new-story" element={<Publish />} />    //  '/blogs/new-story'
                 </Route>
+                <Route path="error" element={<ErrorPage />} />  //  '/error'
             </Routes>
         </BrowserRouter>
     </div>

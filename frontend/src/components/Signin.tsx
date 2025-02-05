@@ -1,48 +1,68 @@
 import { FormEvent, useCallback, useState } from 'react'
-import reactImg from '/react.svg';
-import { NavLink } from 'react-router-dom';
+import axios, { AxiosError } from 'axios';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { SignInType, signinInput } from '@nikhilcbhat021/medium-common';
+
+
+import reactImg from '/react.svg';
 import { AuthInputType } from './Constants';
-import { LabelledInput } from './Utils';
+import { LabelledInput, Loading } from './Utils';
+import * as configs from '../../config.json';
 
 const Signin = () => {
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
     const [error, setError] = useState<Array<string>>([]);
-
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
     const widthClassnames = 'sm:mx-auto sm:w-full sm:max-w-lg';
 
-
-    const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        const form = new FormData(e.currentTarget);
-
-        const password = form.get(AuthInputType.password);
-
-        // console.log({ email, password });
-        const body: SignInType = { email: "", password: "" };
-
-        for (const [key, value] of form.entries()) {
-            body[key as keyof SignInType] = value as string;
-            console.log(key, value);
-        }
-
+    const validations = (body:SignInType) => {
         const result = signinInput.safeParse(body);
-        console.log(result.error?.issues[0].message);
-
-
         const errMsg: string[] = [];
         if (result.error) {
             result.error?.issues.forEach(issue => {
                 errMsg.push(issue.message)
             });
-            // errMsg = result.error?.issues[0].message
         }
 
         if (errMsg.length) {
             setError(errMsg);
+        }
+    }
+
+    const handleOnSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const form = new FormData(e.currentTarget);
+        const body:SignInType = { email: "", password: "" };
+
+        for (const [key, value] of form.entries()) {
+            body[key as keyof SignInType] = value as string;
+            console.log(key, value);
+        }
+        
+        validations(body);
+        
+        try {
+            setLoading(true);
+            const signinRes = await axios.post(`${configs.backend_url}/auth/signin`, body)
+            console.log(signinRes);
+
+            localStorage.setItem('authToken', signinRes.data.token);
+            localStorage.setItem('name', signinRes.data.name);
+
+            navigate('/blogs');
+        } catch (error: unknown) {
+            console.error(error);
+            const errMsg: string[] = [];
+            if (String(error.status).charAt(0) === '4') {
+                errMsg.push(error.response.data?.error)
+                setError(errMsg);
+            } else {
+                alert("Internal Server Error!!! We are fixing it as we speak.");
+            }
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -58,12 +78,14 @@ const Signin = () => {
                     className='space-y-6 text-xl flex flex-col'
                 >
                     <LabelledInput label='Email address'
+                        disabled={loading}
                         onChange={() => true}
                         name={AuthInputType.email}
                         placeholder='jestchest@yippee.com'
                         type='text'
                     />
                     <LabelledInput label='Password'
+                        disabled={loading}
                         onChange={() => true}
                         placeholder="I'm a Strong PWD"
                         name={AuthInputType.password}
@@ -77,11 +99,22 @@ const Signin = () => {
                         </div>)
                     }
                     <div>
-                        <button className='w-full py-2 text-center px-auto rounded-md bg-blue-600 text-white mt-8 py-3' type='submit'>Sign-In</button>
+                        <button disabled={loading} 
+                            className='w-full py-2 text-center px-auto rounded-md bg-blue-600 text-white mt-8 py-3 inline-flex justify-center
+                                    disabled:border-gray-200 disabled:bg-blue-300 disabled:text-gray-700 disabled:shadow-none' 
+                            type='submit'>
+                                <Loading status={loading} />
+                                Sign-In
+                        </button>
                     </div>
                 </form>
             </div>
-            <p className='mt-6 text-2xl font-light'>Don't have an account? <NavLink to={'/signup'} className='font-bold cursor-pointer text-blue-600'>Sign-Up</NavLink></p>
+            <p className='mt-6 text-2xl font-light'>Don't have an account? <NavLink to={`${loading ? '#' : '/signup'}`} 
+                className={`font-bold cursor-pointer text-blue-600
+                    ${loading && 'cursor-default text-blue-300'} 
+                    `
+                }
+            >Sign-Up</NavLink></p>
         </main>
     )
 }

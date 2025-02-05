@@ -7,7 +7,7 @@
     "generate": "prisma generate --no-engine"
   },
   "dependencies": {
-    "@nikhilcbhat021/medium-common": "^1.0.7",
+    "@nikhilcbhat021/medium-common": "^1.0.8",
     "@prisma/client": "^6.2.1",
     "@prisma/extension-accelerate": "^1.2.1",
     "hono": "^4.6.16",

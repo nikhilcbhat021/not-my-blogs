@@ -122,7 +122,7 @@ blogRouter.put(`/`, (c, next) => zodValidator(blogUpdateInput, c, next), async (
 
     console.log(body, userId);
 
-    if (!body.title && !body.content && !body.deleted) {
+    if (!body.title && !body.content && !body.deleted && !body.comments?.length) {
         return c.json({
             message: 'Nothing to update, everything is same.'
         }, 409)
@@ -221,7 +221,7 @@ blogRouter.get(`/:id`, async (c) => {
             },
             cacheStrategy: {
                 swr: 30,
-                ttl: 60
+                // ttl: 60
             }
         })
 

@@ -1,10 +1,10 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
 import reactImg from '/react.svg';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import configs from '../../config.json';
 // import sha256 from 'crypto-js/sha256';
-import { LabelledInput } from './Utils';
+import { LabelledInput, Loading } from './Utils';
 import { SignUpType, signupInput } from '@nikhilcbhat021/medium-common';
 import { AuthInputType } from './Constants';
 
@@ -20,9 +20,10 @@ const Signup = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [cnfPassword, setCnfPassword] = useState("");
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Array<string>>([]);
     const widthClassnames = 'sm:mx-auto sm:w-full sm:max-w-lg';
-
+    const navigate = useNavigate();
     const [finalObj, setFinalObj] = useState<SignUpType>({
         email: "",
         password: "",
@@ -75,6 +76,16 @@ const Signup = () => {
         if (errMsg.length) {
             setError(errMsg);
         }
+
+        try {
+            setLoading(true);
+            const signupRes = await axios.post(`${configs.backend_url}/auth/signup`, body)
+            console.log(signupRes);
+            navigate('/signin');
+        } catch (error: unknown) {
+            console.error(error);
+            alert(error);
+        }
     }
 
     return (
@@ -93,6 +104,7 @@ const Signup = () => {
                             console.log("set the state here - " + e.target.value);
                             // setFinalObj(f => ({...f, [name]: e.target.value}));
                         }, [])}
+                        disabled={loading}
                         name={AuthInputType.email}
                         placeholder='jestchest@yippee.com'
                         type='text'
@@ -103,6 +115,7 @@ const Signup = () => {
                             console.log("set the state here - " + e.target.value);
                             // setFinalObj(f => ({...f, [name]: e.target.value}));
                         }, [])}
+                        disabled={loading}
                         name={AuthInputType.name}
                         placeholder='Jester Chester'
                         type='text'
@@ -110,12 +123,14 @@ const Signup = () => {
                     <LabelledInput label='Password'
                         onChange={useCallback(e => console.log("set the state here - " + e.target.value), [])}
                         placeholder="I'm a Strong PWD"
+                        disabled={loading}
                         name={AuthInputType.password}
                         type='password'
                     />
                     <LabelledInput label='Confirm Password'
                         onChange={useCallback(e => console.log("set the state here - " + e.target.value), [])}
                         placeholder="I'm a Strong PWD"
+                        disabled={loading}
                         name={AuthInputType.cnfPassword}
                         type='password'
                     />
@@ -127,11 +142,20 @@ const Signup = () => {
                         </div>)
                     }
                     <div>
-                        <button className={`w-full py-2 text-center px-auto rounded-md bg-blue-600 text-white py-3 mt-4`} type='submit'>Sign-up</button>
+                        <button disabled={loading} className={`w-full py-2 text-center px-auto rounded-md bg-blue-600 text-white py-3 mt-8 inline-flex justify-center disabled:border-gray-200 disabled:bg-blue-300 disabled:text-gray-700 disabled:shadow-none`} 
+                            type='submit'>
+                            <Loading status={loading} />
+                            Sign-up
+                        </button>
                     </div>
                 </form>
             </div>
-            <p className='mt-6 text-2xl font-light'>Already have an account? <NavLink to={'/signin'} className='font-bold cursor-pointer text-blue-600'>Sign-In</NavLink></p>
+            <p className='mt-6 text-2xl font-light'>Don't have an account? <NavLink to={`${loading ? '#' : '/signin'}`} 
+                className={`font-bold cursor-pointer text-blue-600
+                    ${loading && 'cursor-default text-blue-300'} 
+                    `
+                }
+            >Sign-In</NavLink></p>
         </main>
     )
 }
