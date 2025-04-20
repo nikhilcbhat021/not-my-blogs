@@ -13,9 +13,9 @@ const Blog = () => {
     const { id } = useParams();
     const { loading, blogs } = useBlogs<Blog>(id);
 
-    useEffect(() => { 
-        // console.log("blogs re-render") 
-    });
+    // useEffect(() => { 
+        // console.log("Nikhil "+"blogs re-render")
+    // });
 
     if (loading) {
         return <div>
@@ -74,31 +74,29 @@ export const CommentSection = memo(({
 }) => {
 
     const [opinions, neverSetOpinions] = useState<string>('');
-    const [localComments, setLocalComments] = useState<typeof comments>(comments);
+    const [localComments, setLocalComments] = useState<Array<string>>(comments || []);
     const navigate = useNavigate();
 
-    useEffect(() => { 
+    // useEffect(() => { 
         // console.log("comments section rerender") 
-    });
+    // });
 
-    useEffect(() => { 
-        // console.log("localcomments updated") 
-    }, [localComments])
-
+    
     const handleAddComment = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            const updatedComments = comments ? ([opinions, ...comments]) : ([opinions]);
+            const updatedComments = localComments ? ([opinions, ...localComments]) : ([opinions]);
+
             const response = await axios.put(`${configs.backend_url}/blogs`, {
                 id: id,
-                comments: [...updatedComments]
+                comments: updatedComments 
             }, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('authToken')}`
                 }
             });
-            console.log(response);
-            setLocalComments(updatedComments);
+
+            setLocalComments([...response.data.comments]);
             neverSetOpinions('');
             // navigate(0);
         } catch (err) {
@@ -115,7 +113,7 @@ export const CommentSection = memo(({
         <h4 className='text-3xl font-medium mt-16 border-t pt-16 xl:mt-60 mb-4'>
             {(localComments && localComments?.length) ? 'Comments' : 'No Comments yet'}
         </h4>
-        <form action="POST" onSubmit={e => handleAddComment(e)}>
+        <form onSubmit={e => handleAddComment(e)}>
             <div className='flex justify-between items-end gap-4 w-full pb-8'>
                 <ControlledLabelledInput value={opinions} onChange={useCallback((e) => neverSetOpinions(e.target.value), [neverSetOpinions])} label='Any Thoughts?' name='opinions' placeholder='Be respectful...' type='text' />
                 <button className='btn' type='submit' disabled={!opinions.trim()}>Comment</button>

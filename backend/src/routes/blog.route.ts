@@ -66,10 +66,10 @@ blogRouter.get('/bulk', async(c) => {
                     }
                 }
             },
-            cacheStrategy: {
-                swr: 30,
-                ttl: 60
-            }
+            // cacheStrategy: {
+                // swr: 30,
+                // ttl: 60
+            // }
         })
 
         console.log(blogs);
@@ -162,7 +162,6 @@ blogRouter.put(`/`, (c, next) => zodValidator(blogUpdateInput, c, next), async (
     const db = c.var.db;
     const userId = c.get("jwtPayload").id;
 
-    console.log(body, userId);
 
     if (!body.title && !body.content && !body.deleted && !body.comments?.length) {
         return c.json({
@@ -179,7 +178,9 @@ blogRouter.put(`/`, (c, next) => zodValidator(blogUpdateInput, c, next), async (
                 // userId: userId,  // since a blog posted by one user will not be transfereed to another, updating this is invalid.
                 title: body.title,
                 content: body.content,
-                comments: body?.comments,
+                comments: {
+                    push: body.comments
+                },
                 deleted: body?.deleted || false,
             }
         });
@@ -219,10 +220,10 @@ blogRouter.get(`/:id`, async (c) => {
                     }
                 }
             },
-            cacheStrategy: {
-                swr: 30,
+            // cacheStrategy: {
+                // swr: 30,
                 // ttl: 60
-            }
+            // }
         })
 
         console.log(blog);

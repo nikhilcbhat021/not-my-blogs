@@ -87,9 +87,9 @@ app.post(`/signin`, async (c, next) => await zodValidator(signinInput, c, next),
             where: {
                 email: body.email,
                 password: hashedIncomingPass
-            }, cacheStrategy: {
-                swr: 30,
-                ttl: 60
+            // }, cacheStrategy: {
+                // swr: 30,
+                // ttl: 60
             }, select: {
                 email: true,
                 id: true,
